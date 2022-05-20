@@ -57,6 +57,7 @@ public:
    // This function is used to check if the board is empty. This is needed since the first tiles 
    // placed onto the board don't need to intersect with an already placed word because there are none. 
    bool boardEmpty(); 
+   void createSaveFile(std::string fileName);
 
 
 private:

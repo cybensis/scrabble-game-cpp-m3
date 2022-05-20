@@ -124,16 +124,18 @@ Session::Session(std::fstream* loadFile) {
         this->invalidFile = true;
     }
     if (this->invalidFile) {
-        std::cout << "Invalid Input" << std::endl;
+        std::cout << ERROR_MESSAGE << std::endl;
     }
     loadFile->close();
     // this->invalidFile = true; // TODO to remove 
     return;
 }
 
-bool Session::getIfFileInvalid() {
-    return this->invalidFile;
-}
+
+
+bool Session::getIfFileInvalid() { return this->invalidFile; }
+
+
 
 bool Session::isTileListValid(std::string tiles, int maxSize) {
     bool isValid = true;
@@ -160,6 +162,8 @@ bool Session::isTileListValid(std::string tiles, int maxSize) {
     return isValid;
 }
 
+
+
 // Code from https://stackoverflow.com/questions/216823/how-to-trim-a-stdstring
 // trim from start (in place)
 void Session::ltrim(std::string &s) {
@@ -167,6 +171,8 @@ void Session::ltrim(std::string &s) {
         return !std::isspace(ch);
     }));
 }
+
+
 
 Session::~Session() {
     delete this->tileBag;
@@ -246,7 +252,7 @@ void Session::generatePlayers() {
             // Adding an empty line after each input
             std::cout << std::endl;
         } else {
-            std::cout << "Invalid Input" << std::endl;
+            std::cout << ERROR_MESSAGE << std::endl;
             invalidInput = true;
         }
         
@@ -328,6 +334,7 @@ bool Session::positionEmpty(std::pair<int, int> position) {
 
 void Session::printPlayersHand(Player* player) {
     LinkedList* playersHand = player->getHand();
+    std::cout << BOLDCYAN;
     for (int i = 0; i < playersHand->size(); i++ ) {
         Tile* curTile = playersHand->get(i)->tile;
         // Can't print the "," at the end of the hand printing statement so this if statement checks for the 
@@ -339,6 +346,7 @@ void Session::printPlayersHand(Player* player) {
             std::cout << curTile->letter << "-" << curTile->value;
         }
     }
+    std::cout << RESET;
     std::cout << std::endl << std::endl;
     return;
 }

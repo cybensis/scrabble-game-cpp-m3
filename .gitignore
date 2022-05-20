@@ -1,3 +1,4 @@
 *.o
 assign1
 save.txt
+.vscode/settings.json

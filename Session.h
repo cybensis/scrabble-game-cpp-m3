@@ -14,11 +14,13 @@
 #define MAX_TILES_IN_BAG     98
 #define CAPS_ONLY_REGEX      "^([A-Z])*$"
 #define DIGIT_ONLY_REGEX     "^\\d$"
+#define ERROR_MESSAGE        BOLDRED << "Invalid Input" << RESET
 
 #include "Node.h"
 #include "LinkedList.h"
 #include "Player.h"
 #include "Tile.h"
+#include "Colours.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -26,6 +28,7 @@
 #include <cstring>
 #include <regex>
 #include <algorithm>
+
 
 typedef std::vector<std::vector<char>> BoardVector;
 //Maybe make a type def for coordinate pairs

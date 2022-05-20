@@ -78,9 +78,11 @@ void GameEngine::gameController() {
                 std::cout << "Score for " << playerOne->getName() << ": " << playerOne->getScore() << std::endl;
                 std::cout << "Score for " << playerTwo->getName() << ": " << playerTwo->getScore() << std::endl;
                 // If else to check who won or if it was a draw
+                std::cout << BOLDBLUE;
                 if (playerOne->getScore() > playerTwo->getScore()) { std::cout << "Player " << playerOne->getName() << "won!"; }
                 else if (playerOne->getScore() < playerTwo->getScore()) { std::cout << "Player " << playerTwo->getName() << "won!"; }
                 else if (playerOne->getScore() == playerTwo->getScore()) { std::cout << "The game was a draw!"; }
+                std::cout << RESET;
                 this->quitGame = true;
             }
             // Reset all the variables that need to be reset
@@ -91,6 +93,7 @@ void GameEngine::gameController() {
             this->tilesPlacedThisRound = 0;
             this->scoreThisTurn = 0;
             std::cout << std::endl;
+
         }
     }
     return;
@@ -130,12 +133,12 @@ void GameEngine::handlePlayerTurn() {
                 this->turnFinished = true;
                 this->quitGame = true;
             }
-            else if (!validInput(&userInput, &queueHandIndexes, &queueCoords)) { std::cout << "Invalid Input" << std::endl; }
+            else if (!validInput(&userInput, &queueHandIndexes, &queueCoords)) { std::cout << ERROR_MESSAGE << std::endl; }
             else if (this->turnFinished && this->tilesPlacedThisRound > 0 && !boardEmpty()) {
                 // validTilePlacement uses queueCoords to confirm that the user is intersecting with an already existing word
                 if (validTilePlacement(&queueCoords)) { this->instanceData->placeTiles(&queueHandIndexes, &queueCoords); }
                 else {
-                    std::cout << "Invalid Input" << std::endl;
+                    std::cout << ERROR_MESSAGE << std::endl;
                     queueCoords.clear();
                     queueHandIndexes.clear();
                     this->tilesPlacedThisRound = 0;
@@ -264,76 +267,12 @@ bool GameEngine::validInput(std::string* input, std::vector<int>* queueHandIndex
             }
         }
         else if (givenCommand == "save") { 
-
             if(splitInput.size() == 2) {
-                //The name of the file is the first element of the vector
-                std::string fileName = splitInput.at(1);
-                std::ofstream save;
-                save.open(fileName);
-                LinkedList* hand;
-                // Read the 2 players data and add it to the save file
-                for (int a = 1; a <= 2; a++) {
-                    hand = instanceData->getPlayer(a)->getHand();
-                    save << instanceData->getPlayer(a)->getName() << '\n';
-                    save << instanceData->getPlayer(a)->getScore() << '\n';
-                    //in order to get the elements of the hand (tiles), we do an iteration through the whole vector
-                    for (int i = 0; i < hand->size(); i++ ) {
-                        Tile* curTile = hand->get(i)->tile;
-                        if (i != (MAX_TILES_IN_HAND - 1)) { save << curTile->letter << "-" << curTile->value << ","; }
-                        else { save << curTile->letter << "-" << curTile->value << '\n'; }
-                    }
-                }
-            //We need to construct the board in the file
-            //After declaration, we write the column names which are less than the board size (length)
-            BoardVector* board = instanceData->getBoard();
-            //In order to save position on the board (e.g. C1), we do a nested for loop which respectively gives the ascii alphabet and the horizontal position
-            // for (int i = 0; i < BOARD_SIZE; i++) {
-            //     for (int a = 0; a < BOARD_SIZE; a++) {
-            //         save << board->at(i).at(a);
-            //     }
-            // save << std::endl;
-            // }
-
-            save << "   ";
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                std::string colHeader = " " + std::to_string(i) + "  ";
-                save << colHeader.substr(0, COL_HEADER_LENGTH);
+                createSaveFile(splitInput.at(1));
+                std::cout << "Successfully saved!" << std::endl;
+                noErrors = true;
             }
-
-            save << std::endl << "  ";
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                save << "----";
-            }
-            save << "-";
-            
-            save << std::endl;
-                //In order to save position on the board (e.g. C1), we do a nested for loop which respectively gives the ascii alphabet and the horizontal position
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                save << char(i + INT_ASCII_OFFSET) << " |";
-                for (int a = 0; a < BOARD_SIZE; a++) {
-                    save << " " << board->at(i).at(a) << " |";
-                }
-            save << std::endl;
-            }
-
-            LinkedList* tileBag = instanceData->getTileBag();
-            //Tilebag is processed/saved like player hand
-            for (int i = 0; i < tileBag->size(); i++ ) {
-                Tile* curTile = tileBag->get(i)->tile;
-                if (i != (tileBag->size() - 1)) {
-                    save << curTile->letter << "-" << curTile->value << ",";
-                }
-                else {
-                    save << curTile->letter << "-" << curTile->value << '\n';
-                }
-            }
-            //At the end, for the last line, we save the current player names
-            save << currentPlayer->getName();
-            std::cout << "Successfully saved!" << std::endl;
-            noErrors = true;
-
-        }
- } 
+        } 
         else if (givenCommand == "quit") { this->quitGame = true; this->turnFinished = true; noErrors = true;}
     }
     return noErrors;
@@ -345,52 +284,28 @@ bool GameEngine::validInput(std::string* input, std::vector<int>* queueHandIndex
 
 bool GameEngine::validCoordinates(std::string coordinates) {
     bool noErrors = true;
-    // Need to use string not char or int for coordinates incase they try to enter CC-1A or something like 
-    // that which would throw an error.
-    // std::string rowCoord = coordinates.substr(0, coordinates.find(COORDINATE_DELIMITER));
-    // Need coordinates.find(COORDINATE_DELIMITER) + 1 because we want the substring to be AFTER The '-'
-    // std::string colCoord = coordinates.substr(coordinates.find(COORDINATE_DELIMITER) + 1, coordinates.size());
 
-    std::string rowCoord;
-
-    if(coordinates.size() == COORD_LEN_3) {
-        // If length of coordinates is 3 e.g. A10
-        rowCoord = coordinates.substr(COORDINATE_ROW, coordinates.size() - 2);
-    }
-    else if(coordinates.size() == COORD_LEN_2) {
-        // If length of coordinates is 2 e.g. A5
-        rowCoord = coordinates.substr(COORDINATE_ROW, coordinates.size() - 1);
-    }
-    
+    // Since the row coordinate can only ever be one character long, we only bother with getting the first character.
+    // If they try and supply something like AA15, the column coordinate validation will pick up on the additional A 
+    char rowCoord = coordinates[COORDINATE_ROW];
     std::string colCoord = coordinates.substr(COORDINATE_COL, coordinates.size());
 
-    // row coordinate validation to check if its only 1 char long, and its in range of A-O
-    if (rowCoord.size() != 1 || rowCoord[0] < ROW_RANGE_MIN ||  rowCoord[0] > ROW_RANGE_MAX) {
-        noErrors = false;
-    }
-    // This checks the size of the column coordinate to see if its size is greater than 2 or equal to nothing (0), then it 
-    // checks to see if the first given digit is actually a number.
-    if ( colCoord.size() > 2 || colCoord.size() == 0 || !std::isdigit(colCoord[0]) ) {
-        noErrors = false;
-    }
+    // row coordinate validation to check if its in range of A-O
+    if (rowCoord < ROW_RANGE_MIN ||  rowCoord > ROW_RANGE_MAX) { noErrors = false; }
+    // Make sure the column coord isn't more than 2 chars, or empty, then check if the first char is a valid 
+    if ( colCoord.size() > 2 || colCoord.size() == 0 || !std::isdigit(colCoord[0]) ) { noErrors = false; }
     // The else if first checks if the digit is two characters long, then it checks if the first character is a 0 (because 
     // they can try place C at A-01), then it checks if the second char is an int or not.
-    else if (colCoord.size() == 2 && (colCoord[0] == '0' || !std::isdigit(colCoord[1]) ) ) {
-        noErrors = false;
-    }
-        // The two statements above validate the colCoord as a valid integer, so stoi is safe to use
-    else if (std::stoi(colCoord) < 0 || std::stoi(colCoord) >= BOARD_SIZE) {
-        noErrors = false;
-    }
-
+    else if (colCoord.size() == 2 && (colCoord[0] == '0' || !std::isdigit(colCoord[1]) ) ) {  noErrors = false; }
+    // The two statements above validate the colCoord as a valid integer, so stoi is safe to use
+    else if (std::stoi(colCoord) < 0 || std::stoi(colCoord) >= BOARD_SIZE) { noErrors = false; }
     return noErrors;
 }
 
 
 
 
-void GameEngine::printBoard()
-{
+void GameEngine::printBoard() {
     BoardVector* board = this->instanceData->getBoard();
     // Start by printing out the Column coordinates, starting with 4 spaces for the row coordinates,
     // then start printing out " 1  ", " 2  ", etc. Note that the second space after each number is
@@ -414,7 +329,7 @@ void GameEngine::printBoard()
     for (int i = 0; i < BOARD_SIZE; i++) {
         std::cout << char(i + INT_ASCII_OFFSET) << " |";
         for (int a = 0; a < BOARD_SIZE; a++) {
-            std::cout << " " << board->at(i).at(a) << " |";
+            std::cout << " " << BOLDCYAN << board->at(i).at(a) << RESET << " |";
         }
         std::cout << std::endl;
     }
@@ -427,4 +342,63 @@ bool GameEngine::boardEmpty() {
     // By checking that both player scores are equal to 0, that means neither of them have placed 
     // any tiles, AKA the board is empty.
     return (this->instanceData->getPlayer(1)->getScore() == 0 && this->instanceData->getPlayer(2)->getScore() == 0);
+}
+
+
+
+void GameEngine::createSaveFile(std::string fileName) {
+//The name of the file is the first element of the vector
+                std::ofstream save;
+                save.open(fileName);
+                LinkedList* hand;
+                // Read the 2 players data and add it to the save file
+                for (int a = 1; a <= 2; a++) {
+                    hand = instanceData->getPlayer(a)->getHand();
+                    save << instanceData->getPlayer(a)->getName() << '\n';
+                    save << instanceData->getPlayer(a)->getScore() << '\n';
+                    //in order to get the elements of the hand (tiles), we do an iteration through the whole vector
+                    for (int i = 0; i < hand->size(); i++ ) {
+                        Tile* curTile = hand->get(i)->tile;
+                        if (i != (MAX_TILES_IN_HAND - 1)) { save << curTile->letter << "-" << curTile->value << ","; }
+                        else { save << curTile->letter << "-" << curTile->value << '\n'; }
+                    }
+                }
+            //We need to construct the board in the file
+            //After declaration, we write the column names which are less than the board size (length)
+            BoardVector* board = instanceData->getBoard();
+
+            save << "   ";
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                std::string colHeader = " " + std::to_string(i) + "  ";
+                save << colHeader.substr(0, COL_HEADER_LENGTH);
+            }
+
+            save << std::endl << "  ";
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                save << "----";
+            }
+            save << "-" << std::endl;
+
+            //In order to save position on the board (e.g. C1), we do a nested for loop which respectively gives the ascii alphabet and the horizontal position
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                save << char(i + INT_ASCII_OFFSET) << " |";
+                for (int a = 0; a < BOARD_SIZE; a++) {
+                    save << " " << board->at(i).at(a) << " |";
+                }
+            save << std::endl;
+            }
+
+            LinkedList* tileBag = instanceData->getTileBag();
+            //Tilebag is processed/saved like player hand
+            for (int i = 0; i < tileBag->size(); i++ ) {
+                Tile* curTile = tileBag->get(i)->tile;
+                if (i != (tileBag->size() - 1)) {
+                    save << curTile->letter << "-" << curTile->value << ",";
+                }
+                else {
+                    save << curTile->letter << "-" << curTile->value << '\n';
+                }
+            }
+            //At the end, for the last line, we save the current player names
+            save << currentPlayer->getName();
 }
