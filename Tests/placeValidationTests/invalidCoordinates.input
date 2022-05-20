@@ -1,0 +1,17 @@
+1
+ONE
+TWO
+place D at C01
+place D at c1
+place D at C1000
+place D at CC1
+place D at CCCCCCCCCCCCCCCCCCCCCCC1
+place D at C  1
+place D at C 1
+place D at C 1
+place D at D15
+place D at P1
+place D at -1
+place D at C
+place D at C-1
+^D

@@ -1,0 +1,11 @@
+1
+BOB
+JOHN
+place R at A0
+place D at A1
+place Done
+place L at A2
+place N at A3
+place Done
+save ./Tests/test11/saveNewGame
+^D
