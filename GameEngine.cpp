@@ -78,7 +78,7 @@ void GameEngine::gameController() {
                 std::cout << "Score for " << playerOne->getName() << ": " << playerOne->getScore() << std::endl;
                 std::cout << "Score for " << playerTwo->getName() << ": " << playerTwo->getScore() << std::endl;
                 // If else to check who won or if it was a draw
-                std::cout << BOLDBLUE;
+                std::cout << BOLD_BRIGHT_GREEN;
                 if (playerOne->getScore() > playerTwo->getScore()) { std::cout << "Player " << playerOne->getName() << "won!"; }
                 else if (playerOne->getScore() < playerTwo->getScore()) { std::cout << "Player " << playerTwo->getName() << "won!"; }
                 else if (playerOne->getScore() == playerTwo->getScore()) { std::cout << "The game was a draw!"; }
@@ -273,6 +273,11 @@ bool GameEngine::validInput(std::string* input, std::vector<int>* queueHandIndex
                 noErrors = true;
             }
         } 
+        else if (givenCommand == "help") {
+            if(splitInput.size() == 1) {
+                
+            }
+        }
         else if (givenCommand == "quit") { this->quitGame = true; this->turnFinished = true; noErrors = true;}
     }
     return noErrors;
@@ -329,7 +334,7 @@ void GameEngine::printBoard() {
     for (int i = 0; i < BOARD_SIZE; i++) {
         std::cout << char(i + INT_ASCII_OFFSET) << " |";
         for (int a = 0; a < BOARD_SIZE; a++) {
-            std::cout << " " << BOLDCYAN << board->at(i).at(a) << RESET << " |";
+            std::cout << " " << BOLD_BRIGHT_CYAN << board->at(i).at(a) << RESET << " |";
         }
         std::cout << std::endl;
     }

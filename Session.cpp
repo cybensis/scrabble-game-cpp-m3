@@ -334,16 +334,15 @@ bool Session::positionEmpty(std::pair<int, int> position) {
 
 void Session::printPlayersHand(Player* player) {
     LinkedList* playersHand = player->getHand();
-    std::cout << BOLDCYAN;
     for (int i = 0; i < playersHand->size(); i++ ) {
         Tile* curTile = playersHand->get(i)->tile;
         // Can't print the "," at the end of the hand printing statement so this if statement checks for the 
         // moment when i == hand size-1 (-1 because of the array index starting at 0) to change the print statement.
         if (i != (playersHand->size() - 1)) {
-            std::cout << curTile->letter << "-" << curTile->value << ", ";
+            std::cout << tilePointColours.at(curTile->value) << curTile->letter << "-" << curTile->value  << RESET << ", ";
         }
         else {
-            std::cout << curTile->letter << "-" << curTile->value;
+            std::cout << tilePointColours.at(curTile->value) << curTile->letter << "-" << curTile->value  << RESET;
         }
     }
     std::cout << RESET;
