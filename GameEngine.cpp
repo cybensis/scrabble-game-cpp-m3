@@ -353,9 +353,12 @@ void GameEngine::printBoard() {
 
 
 bool GameEngine::boardEmpty() {
-    // By checking that both player scores are equal to 0, that means neither of them have placed 
-    // any tiles, AKA the board is empty.
-    return (this->instanceData->getPlayer(1)->getScore() == 0 && this->instanceData->getPlayer(2)->getScore() == 0);
+    bool isBoardEmpty = true;
+    // Efficient way of checking if the board is empty is checking if any players have score
+    for (int i = 0; i < this->instanceData->getNumOfPlayers(); i++) {
+        if (this->instanceData->getPlayer(i)->getScore() > 0) { isBoardEmpty = false; }
+    }
+    return isBoardEmpty;
 }
 
 
