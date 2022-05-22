@@ -6,11 +6,14 @@ GameEngine::GameEngine()
     bool tileBagError = this->instanceData->generateTileBag();
     if (!tileBagError) {
         this->instanceData->generatePlayers();
-        this->currentPlayer = this->instanceData->getCurrentPlayer();
-        this->scoreThisTurn = 0;
-        this->turnFinished = false;
-        this->tilesPlacedThisRound = 0;
-        this->quitGame = false;
+        // If the player exits during creating players, the number of players should be 0
+        if (this->instanceData->getNumOfPlayers() > 0) {
+            this->currentPlayer = this->instanceData->getCurrentPlayer();
+            this->scoreThisTurn = 0;
+            this->turnFinished = false;
+            this->tilesPlacedThisRound = 0;
+            this->quitGame = false;
+        }
     }
 }
 
@@ -56,16 +59,14 @@ GameEngine::~GameEngine()
 
 
 void GameEngine::gameController() {
-    // If the tilebag returns an error then the players are never initialized, so the current and other Player will be null.
-    if (this->instanceData->getPlayer(1) != NULL && this->instanceData->getPlayer(2) != NULL && !this->instanceData->getIfFileInvalid()) {
+    // This checks if the tilebag threw an error, or the players were never made due to an error or ^D
+    if (!this->instanceData->getIfFileInvalid() && this->instanceData->getNumOfPlayers() > 0) {
         std::cout << "Let's Play!" << std::endl << std::endl;
-        // NOTE: The whole playerOne, playerTwo, getCurrentPlayer is very shoddy and could definitely be refactored.    
-        Player* playerOne = this->instanceData->getPlayer(1);
-        Player* playerTwo = this->instanceData->getPlayer(2);
         while (!quitGame) {
             std::cout << this->currentPlayer->getName() << ", it's your turn" << std::endl;
-            std::cout << "Score for " << playerOne->getName() << ": " << playerOne->getScore() << std::endl;
-            std::cout << "Score for " << playerTwo->getName() << ": " << playerTwo->getScore() << std::endl;
+            for (int i = 0; i < this->instanceData->getNumOfPlayers(); i++) {
+                std::cout << "Score for " << this->instanceData->getPlayer(i)->getName() << ": " << this->instanceData->getPlayer(i)->getScore() << std::endl;
+            }
             printBoard();
             std::cout << "Your hand is" << std::endl;
             this->instanceData->printPlayersHand(this->currentPlayer);
@@ -75,13 +76,15 @@ void GameEngine::gameController() {
             bool gameFinished = checkEndConditions();
             if (gameFinished) {
                 std::cout << "Game over" << std::endl;
-                std::cout << "Score for " << playerOne->getName() << ": " << playerOne->getScore() << std::endl;
-                std::cout << "Score for " << playerTwo->getName() << ": " << playerTwo->getScore() << std::endl;
+                for (int i = 0; i < this->instanceData->getNumOfPlayers(); i++) {
+                    std::cout << "Score for " << this->instanceData->getPlayer(i)->getName() << ": " << this->instanceData->getPlayer(i)->getScore() << std::endl;
+                }
                 // If else to check who won or if it was a draw
                 std::cout << BOLD_BRIGHT_GREEN;
-                if (playerOne->getScore() > playerTwo->getScore()) { std::cout << "Player " << playerOne->getName() << "won!"; }
-                else if (playerOne->getScore() < playerTwo->getScore()) { std::cout << "Player " << playerTwo->getName() << "won!"; }
-                else if (playerOne->getScore() == playerTwo->getScore()) { std::cout << "The game was a draw!"; }
+                // if (playerOne->getScore() > playerTwo->getScore()) { std::cout << "Player " << playerOne->getName() << "won!"; }
+                // else if (playerOne->getScore() < playerTwo->getScore()) { std::cout << "Player " << playerTwo->getName() << "won!"; }
+                // else if (playerOne->getScore() == playerTwo->getScore()) { std::cout << "The game was a draw!"; }
+                std::cout << "SETUP WIN CONDITIONS HERE" << std::endl;
                 std::cout << RESET;
                 this->quitGame = true;
             }
@@ -118,12 +121,16 @@ void GameEngine::handlePlayerTurn() {
     std::vector<std::pair<int, int>> queueCoords;  
     std::vector<int> queueHandIndexes;  
     while ( !this->turnFinished ) {
+        bool errorCondition = false;
         // Special operation: Bingo conditions
         if (this->tilesPlacedThisRound == MAX_MOVES_PER_TURN) {
-            std::cout << std::endl << "BINGO!!!" << std::endl;
-            this->scoreThisTurn += BINGO_POINTS;
-            this->instanceData->placeTiles(&queueHandIndexes, &queueCoords);
-            this->turnFinished = true;
+            if (validTilePlacement(&queueCoords)) { 
+                std::cout << std::endl << "BINGO!!!" << std::endl;
+                this->scoreThisTurn += BINGO_POINTS;
+                this->instanceData->placeTiles(&queueHandIndexes, &queueCoords);
+                this->turnFinished = true;
+            }
+            else { errorCondition = true; }
         } else {
             std::cout << "> ";
             std::string userInput;
@@ -137,19 +144,21 @@ void GameEngine::handlePlayerTurn() {
             else if (this->turnFinished && this->tilesPlacedThisRound > 0 && !boardEmpty()) {
                 // validTilePlacement uses queueCoords to confirm that the user is intersecting with an already existing word
                 if (validTilePlacement(&queueCoords)) { this->instanceData->placeTiles(&queueHandIndexes, &queueCoords); }
-                else {
-                    std::cout << ERROR_MESSAGE << std::endl;
-                    queueCoords.clear();
-                    queueHandIndexes.clear();
-                    this->tilesPlacedThisRound = 0;
-                    this->scoreThisTurn = 0;
-                    this->turnFinished = false;
-                }
+                else { errorCondition = true; }
             }
             // This is for the very first turn of a new game
             else if (this->turnFinished && this->tilesPlacedThisRound > 0 && boardEmpty()) {
                 this->instanceData->placeTiles(&queueHandIndexes, &queueCoords);
             }
+        }
+        // This runs if the tiles coordinates are not valid to place
+        if (errorCondition) {
+            std::cout << ERROR_MESSAGE << std::endl;
+            queueCoords.clear();
+            queueHandIndexes.clear();
+            this->tilesPlacedThisRound = 0;
+            this->scoreThisTurn = 0;
+            this->turnFinished = false;
         }
     }
     return;
@@ -356,8 +365,9 @@ void GameEngine::createSaveFile(std::string fileName) {
                 std::ofstream save;
                 save.open(fileName);
                 LinkedList* hand;
+                save << this->instanceData->getNumOfPlayers() << "\n";
                 // Read the 2 players data and add it to the save file
-                for (int a = 1; a <= 2; a++) {
+                for (int a = 0; a < this->instanceData->getNumOfPlayers(); a++) {
                     hand = instanceData->getPlayer(a)->getHand();
                     save << instanceData->getPlayer(a)->getName() << '\n';
                     save << instanceData->getPlayer(a)->getScore() << '\n';

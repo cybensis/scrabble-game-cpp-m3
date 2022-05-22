@@ -14,7 +14,7 @@
 // #define COORDINATE_DELIMITER   '-'
 #define COORDINATE_ROW          0
 #define COORDINATE_COL          1
-// These values are used when validating user input. If a user enters "place A at C-4", this
+// These values are used when validating user input. If a user enters "place A at C4", this
 // statement is split into 4 components, and the first 4 values represent each of those index locations.
 // There is also one for "Done" when entering "place Done"
 #define COMMAND_INDEX_LOC       0

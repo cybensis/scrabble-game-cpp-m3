@@ -2,8 +2,8 @@
 #include "Session.h"
 
 Session::Session() {
-    this->playerOnesTurn = true;
     this->invalidFile = false;
+    this->curPlayerIndex = 0;
     // Since you can't declare a 2D vectors size in the header file, it needs to be done here. This loops pushes 15 times,
     // another vector that has 15 char slots in it, all initialised with an empty space.
     for (int i = 0; i < BOARD_SIZE; i++) {
@@ -13,34 +13,38 @@ Session::Session() {
 }
 
 Session::Session(std::fstream* loadFile) {
-    this->invalidFile = false;
+    this->curPlayerIndex = 0;
     if (*loadFile) {
-        // Get the players
-        std::string playerName;
-        std::string playerScore; 
-        std::string playerHand;
-        std::getline(*loadFile, playerName);
-        std::getline(*loadFile, playerScore);
-        std::getline(*loadFile, playerHand);
-        if (playerName.length() > 0 && regex_match(playerName, std::regex(CAPS_ONLY_REGEX)) && regex_match(playerScore, std::regex(DIGIT_ONLY_REGEX)) 
-        && playerScore.length() > 0 && isTileListValid(playerHand, MAX_TILES_IN_HAND)) {
-            this->playerOne = new Player(playerName, playerHand, std::stoi(playerScore));
-        } else {
-            this->invalidFile = true;
+        std::string numOfPlayers;
+        std::getline(*loadFile, numOfPlayers);
+        // Could use regex to check for this but I think this looks better and clearer
+        if (numOfPlayers == "2" || numOfPlayers == "3" || numOfPlayers == "4") {
+            // Get the players
+            this->numOfPlayers = std::stoi(numOfPlayers);
+            std::string playerName;
+            std::string playerScore; 
+            std::string playerHand;
+            // This loops through all the players in the save game file, only if the file is valid.
+            while (this->listOfPlayers.size() < this->numOfPlayers && !this->invalidFile) {
+                // The file is set to invalid at the start, then its validated once all these validations have passed
+                this->invalidFile = true;
+                std::getline(*loadFile, playerName);
+                std::getline(*loadFile, playerScore);
+                std::getline(*loadFile, playerHand);
+                // Player name validation
+                if (playerName.length() > 0 && regex_match(playerName, std::regex(CAPS_ONLY_REGEX))) { 
+                    // Player score validation
+                    if (regex_match(playerScore, std::regex(DIGIT_ONLY_REGEX)) && playerScore.length() > 0) { 
+                        // Player hand validation
+                        if (isTileListValid(playerHand, MAX_TILES_IN_HAND)) {
+                            this->listOfPlayers.push_back(new Player(playerName, playerHand, std::stoi(playerScore)));
+                            this->invalidFile = false;
+                        }
+                    } 
+                }
+            }
         }
-        playerName = "";
-        playerScore = "";
-        playerHand = "";
-        std::getline(*loadFile, playerName);
-        std::getline(*loadFile, playerScore);
-        std::getline(*loadFile, playerHand);
-        if (!this->invalidFile && playerName.length() > 0 && regex_match(playerName, std::regex(CAPS_ONLY_REGEX)) 
-        && regex_match(playerScore, std::regex(DIGIT_ONLY_REGEX)) && playerScore.length() > 0 && isTileListValid(playerHand, MAX_TILES_IN_HAND)) {
-            this->playerTwo = new Player(playerName, playerHand, std::stoi(playerScore));
-        } else {
-            this->invalidFile = true;
-        }
-
+        else { this->invalidFile = true; }
         if (!invalidFile) {
             // Skips the two header lines
             std::string tempString;
@@ -78,13 +82,10 @@ Session::Session(std::fstream* loadFile) {
             }
         }
        
-        // // Get the tilebag by splitting input on "," then by getting substrings of the split strings, it gets
-        // // the score and tile char
         this->tileBag = new LinkedList();
         std::string tileBagString;
         std::getline(*loadFile, tileBagString);
         if (tileBagString.length() > 0 && isTileListValid(tileBagString, MAX_TILES_IN_BAG)) {
-
             std::stringstream inputStream(tileBagString); 
             std::vector<std::string> splitTileBagString;
 
@@ -112,22 +113,21 @@ Session::Session(std::fstream* loadFile) {
         if (currentPlayer.length() == 0 || !regex_match(currentPlayer, std::regex(CAPS_ONLY_REGEX))) {
             this->invalidFile = true;
         }
+        else {
+            for (int i = 0; i < this->numOfPlayers; i++) {
+                if (currentPlayer == this->listOfPlayers.at(i)->getName()) { this->curPlayerIndex = i; }
+            }
+        }
 
         if (!invalidFile) {
-            this->playerOne->setTileBag(this->tileBag);
-            this->playerTwo->setTileBag(this->tileBag);
-            this->playerOnesTurn = (currentPlayer == this->playerOne->getName()) ? true : false;
+            for (int i = 0; i < this->numOfPlayers; i++) { this->listOfPlayers.at(i)->setTileBag(this->tileBag); }
             std::cout << std::endl << "Scrabble game successfully loaded" << std::endl;
         }
 
-    } else {
-        this->invalidFile = true;
-    }
-    if (this->invalidFile) {
-        std::cout << ERROR_MESSAGE << std::endl;
-    }
+    } 
+    else { this->invalidFile = true; }
+    if (this->invalidFile) { std::cout << ERROR_MESSAGE << std::endl; }
     loadFile->close();
-    // this->invalidFile = true; // TODO to remove 
     return;
 }
 
@@ -149,12 +149,9 @@ bool Session::isTileListValid(std::string tiles, int maxSize) {
             std::string tile = *iter;
             ltrim(tile);
             if (lengthHand < maxSize) {
-                if (!regex_match(tile, std::regex(TILE_REGEX))) { // Checks if current tile is <letter>-<number> format
-                    isValid = false;
-                } 
-            } else {
-                isValid = false;
-            }
+                if (!regex_match(tile, std::regex(TILE_REGEX))) { isValid = false; } // Checks if current tile is <letter>-<number> format
+            } 
+            else { isValid = false; }
             iter++;
             lengthHand++;
         }
@@ -174,11 +171,7 @@ void Session::ltrim(std::string &s) {
 
 
 
-Session::~Session() {
-    delete this->tileBag;
-    delete this->playerOne;
-    delete this->playerTwo;
-}
+Session::~Session() { delete this->tileBag; }
 
 
 
@@ -194,12 +187,11 @@ bool Session::generateTileBag() {
         std::string line;
         // Read each line of the file into the line variable.
         while (std::getline(tilesFile, line)) {
-            // These two lines get the character via its index in the string, and its score, starting from
-            // the start of the score index, to the end of the string (since a score can be two characters long)
+            // The tile character should always be located at the first element in the string
             char tileCharacter = line[CHAR_INDEX];
+            if ( tileCharacter < 'A' && tileCharacter > 'Z') { error = true; }
             // Yoinked from https://stackoverflow.com/questions/2844817/how-do-i-check-if-a-c-string-is-an-int, this
-            // checks if the substring of line that contains the score is actually an integer. This is preferred
-            // over something like isalpha because it works on strings as well not just chars.
+            // checks if the substring of line that contains the score is actually an integer.
             if (line.substr(SCORE_INDEX,line.length()).find_first_not_of( "0123456789" ) != std::string::npos) {
                 std::cout << "Please make sure there is a valid ScrabbleTiles.txt file in your working directory" << std::endl;
                 error = true;
@@ -221,63 +213,60 @@ bool Session::generateTileBag() {
 
 
 void Session::generatePlayers() {
-    bool assigningUsernames = true;
-    bool invalidInput = false;
-    int currentUserIdx = 1;
-    while (assigningUsernames) {
+
+    bool invalidInput = true;
+    while (invalidInput) {
         std::string userInput;
-        if (!invalidInput) {
-            std::cout << "Enter a name for player " + std::to_string(currentUserIdx) +" (uppercase characters only)" << std::endl << "> "; 
-        } else {
-            std::cout << "> ";
-        }
-        invalidInput = false;
+        std::cout << "Please enter many people are playing: Range 2-4" << std::endl << "> ";
         std::getline(std::cin, userInput);
+        if (userInput == "2" || userInput == "3" || userInput == "4") {
+            this->numOfPlayers = std::stoi(userInput);
+            invalidInput = false;
+        }
+        else if (std::cin.eof() || userInput == "^D") { invalidInput = false; this->numOfPlayers = 0; }
+        else { std::cout << ERROR_MESSAGE << std::endl << std::endl; }
+    }
+
+
+    int currentUser = 1;
+    while (currentUser <= this->numOfPlayers) {
+        invalidInput = false;
+        std::string userInput;
+        if (!invalidInput) { std::cout << "Enter a name for player " << currentUser << " (uppercase characters only)" << std::endl << "> "; } 
+        else { std::cout << "> "; }
+        std::getline(std::cin, userInput);
+        if (std::cin.eof() || userInput == "^D") { std::cout << std::endl;  currentUser = this->numOfPlayers; } 
         // Code yoinked from https://stackoverflow.com/questions/48082092/c-check-if-whole-string-is-uppercase
         // This will check if all characters in a string are uppercase characters AND if they are only valid chars (A-Z)
-        if (std::cin.eof() || userInput == "^D") {
-            std::cout << std::endl; 
-            assigningUsernames = false;
-        } else if (std::all_of(userInput.begin(), userInput.end(), [](unsigned char c){ return std::isupper(c); }) && userInput.length() > 0) { 
-            // If the currentUserIdx is 1 then create the first player object and add to currentUserIdx, otherwise
-            // create playerTwo and end the loop
-            if (currentUserIdx == 1) {
-                this->playerOne = new Player(userInput, this->tileBag);
-                currentUserIdx += 1;
+        else if (std::all_of(userInput.begin(), userInput.end(), [](unsigned char c){ return std::isupper(c); }) && userInput.length() > 0) { 
+            // Loop through all the created player objects to ensure there are no duplicate names
+            for (int i = 0; i < this->listOfPlayers.size(); i++) {
+                if (userInput == this->listOfPlayers.at(i)->getName()) { invalidInput = true;}
             }
-            else if (this->playerOne->getName() != userInput) {
-                this->playerTwo = new Player(userInput, this->tileBag);
-                assigningUsernames = false;
-            }
-            // Adding an empty line after each input
-            std::cout << std::endl;
-        } else {
-            std::cout << ERROR_MESSAGE << std::endl;
-            invalidInput = true;
-        }
-        
-        
+        } 
+        else { invalidInput = true; }
+
+        if (invalidInput) { std::cout << ERROR_MESSAGE << std::endl; }
+        else { this->listOfPlayers.push_back(new Player(userInput, this->tileBag)); currentUser += 1; }
+        std::cout << std::endl;
     }
     return;
 }
 
 
 
-Player* Session::getCurrentPlayer() {
-    Player* currentPlayer = (playerOnesTurn) ? this->playerOne : this->playerTwo;
-    return currentPlayer;
-}
+Player* Session::getCurrentPlayer() { return this->listOfPlayers.at(this->curPlayerIndex); }
 
 void Session::swapCurrentPlayer() {
     this->getCurrentPlayer()->fillHand();
-    // this->getCurrentPlayer()->addOneTile();
-    this->playerOnesTurn = !playerOnesTurn;
+    // This adds +1 to the curPlayerIndex, then the mod ensures if it reaches the size of the list, it goes to 0
+    this->curPlayerIndex = (this->curPlayerIndex + 1) % this->numOfPlayers;
     return;
 }
 
 
-Player* Session::getPlayer(int playerNumber) {
-    Player* currentPlayer = (playerNumber == 1) ? this->playerOne : this->playerTwo;
+Player* Session::getPlayer(int playerIndex) {
+    Player* currentPlayer = this->listOfPlayers.at(playerIndex);
     return currentPlayer;
 }
 
@@ -350,10 +339,18 @@ void Session::printPlayersHand(Player* player) {
     return;
 }
 
+
+
 int Session::getTileBagSize() {
     return this->tileBag->size();
 }
 
+
+
 LinkedList* Session::getTileBag() {
     return this->tileBag;
+}
+
+int Session::getNumOfPlayers() {
+    return this->numOfPlayers;
 }
