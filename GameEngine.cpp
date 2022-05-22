@@ -282,10 +282,19 @@ bool GameEngine::validInput(std::string* input, std::vector<int>* queueHandIndex
                 noErrors = true;
             }
         } 
-        else if (givenCommand == "help") {
-            if(splitInput.size() == 1) {
-                
+        // Added the ability to cancel the "place" command in case a wrong coordinate or wrong tile is chosen.
+        else if (givenCommand == "cancel") {
+            if (splitInput.size() == 1 && this->tilesPlacedThisRound > 0) {
+                noErrors = true;
+                this->tilesPlacedThisRound = 0;
+                queueHandIndexes->clear();
+                queueCoords->clear();
+                this->scoreThisTurn = 0;
             }
+        }
+        else if (givenCommand == "help") {
+            if (splitInput.size() == 1) { printHelp(); noErrors = true; }
+            else if (splitInput.size() == 2) { printHelp(splitInput.at(1)); noErrors = true; }
         }
         else if (givenCommand == "quit") { this->quitGame = true; this->turnFinished = true; noErrors = true;}
     }
@@ -419,4 +428,60 @@ void GameEngine::createSaveFile(std::string fileName) {
             }
             //At the end, for the last line, we save the current player names
             save << currentPlayer->getName();
+}
+
+void GameEngine::printHelp() {
+    std::cout << "Available commands: place, replace, pass, save, quit, help" << std::endl;
+    std::cout << "Type \"help commandname\" for more info" << std::endl;
+    std::cout << std::endl;
+    return;
+}
+
+void GameEngine::printHelp(std::string command) {
+    std::cout << BOLD_BRIGHT_GREEN;
+    if (command == "place") {
+        std::cout << "\"place\" Command" << std::endl;
+        std::cout << "      Usage: Used to place tiles on the board" << std::endl;
+        std::cout << "      Example: place Y at C10" << std::endl;
+        std::cout << "\"place Done\" Command" << std::endl;
+        std::cout << "      Usage: Used to finish your turn and place all selected tiles down" << std::endl;
+        std::cout << "      Example: place Done" << std::endl;
+        std::cout << "\"cancel\" Command" << std::endl;
+        std::cout << "      Usage: Used to undo all the \"place\" commands entered" << std::endl;
+        std::cout << "      Example: cancel" << std::endl;
+    }
+    else if (command == "replace") {
+        std::cout << "\"replace\" Command" << std::endl;
+        std::cout << "      Usage: Used to replace a tile in the players hand" << std::endl;
+        std::cout << "      Example: replace E" << std::endl;
+    }
+    else if (command == "pass") {
+        std::cout << "\"pass\" Command" << std::endl;
+        std::cout << "      Usage: Used to pass the turn without placing any tiles down" << std::endl;
+        std::cout << "      Example: pass" << std::endl;
+    }
+    else if (command == "save") {
+        std::cout << "\"save\" Command" << std::endl;
+        std::cout << "      Usage: Used to save the state of the current game" << std::endl;
+        std::cout << "      Example: save filename" << std::endl;
+    }
+    else if (command == "quit") {
+        std::cout << "\"quit\" Command" << std::endl;
+        std::cout << "      Usage: Used to quit the game" << std::endl;
+        std::cout << "      Example: quit" << std::endl;
+    }
+    else if (command == "help") {
+        std::cout << "\"help\" Command" << std::endl;
+        std::cout << "      Usage: Used to show this menu" << std::endl;
+        std::cout << "      Example: help" << std::endl;
+    }
+    else {
+        std::cout << BOLD_BRIGHT_RED << command << " is not a valid command!" << RESET << std::endl;
+        std::cout << "Available commands: place, replace, pass, save, quit, help" << std::endl;
+    }
+    std::cout << RESET << std::endl;
+    return;
+
+
+
 }

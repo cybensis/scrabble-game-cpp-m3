@@ -13,7 +13,7 @@
 #define MAX_TILES_IN_HAND    7
 #define MAX_TILES_IN_BAG     98
 #define CAPS_ONLY_REGEX      "^([A-Z])*$"
-#define DIGIT_ONLY_REGEX     "^\\d$"
+#define DIGIT_ONLY_REGEX     "^\\d+$"
 #define ERROR_MESSAGE        BOLD_BRIGHT_RED << "Invalid Input" << RESET
 
 #include "Node.h"

@@ -58,7 +58,9 @@ public:
    // placed onto the board don't need to intersect with an already placed word because there are none. 
    bool boardEmpty(); 
    void createSaveFile(std::string fileName);
-
+   // printHelp is overloaded to print a generic help message with all the commands, then one to print help for a specific command
+   void printHelp();
+   void printHelp(std::string command);
 
 private:
     Session* instanceData;

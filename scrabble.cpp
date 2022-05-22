@@ -26,6 +26,7 @@ void credits();
 std::fstream& GotoLine(std::fstream& file, unsigned int num);
 bool validation(std::fstream myFile);
 string userInput();
+void printHelp();
 
 int main(void) {
     welcomeMessage();
@@ -46,22 +47,17 @@ void mainMenu() {
     do {
         toRePrompt = false;
         choice = userInput();
-        if (choice == "1") {
-            newGame();
-        } else if (choice == "2") {
-            loadGame();
-        } else if (choice == "3") {
+        if (choice == "help") { printHelp(); }
+        else if (choice == "1") { newGame(); } 
+        else if (choice == "2") { loadGame(); } 
+        else if (choice == "3") {
             credits();
             // Reprompt user after showing credits
             toRePrompt = true;
             printMainMenu();
-        } else if (choice == "4") {
-            cout << "\nGoodbye" << endl;
-            exit(EXIT_SUCCESS);
-        } else {
-            cout << "Invalid Input" << endl;
-            toRePrompt = true;
-        }
+        } 
+        else if (choice == "4") { cout << "\nGoodbye" << endl;} 
+        else { cout << ERROR_MESSAGE << endl; toRePrompt = true; }
     } while (toRePrompt);
 }
 
@@ -128,4 +124,14 @@ string userInput() {
         exit(EXIT_SUCCESS);
     }
     return input;
+}
+
+
+void printHelp() {
+    std::cout << "Enter \"1\" to start a new game" << std::endl;
+    std::cout << "Enter \"2\" to load a game" << std::endl;
+    std::cout << "Enter \"3\" to show credits" << std::endl;
+    std::cout << "Enter \"4\" to quit the game" << std::endl;
+    std::cout << std::endl;
+    return;
 }
