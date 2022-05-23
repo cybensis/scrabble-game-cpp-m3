@@ -31,6 +31,8 @@
 #define BINGO_POINTS            50
 #define COORD_LEN_3             3
 #define COORD_LEN_2             2
+// Used when finding the winner if two players tie for the highest score
+#define DRAW                    -1
 #include "Session.h"
 #include <sstream>
 #include <fstream>

@@ -36,14 +36,10 @@ GameEngine::GameEngine(std::fstream* loadFile) {
                 myFile.open(input, std::ios::in);
                 this->instanceData = new Session(&myFile);
             }
-        } else {
-            this->instanceData = new Session(loadFile);
-        }
-        if (this->instanceData->getIfFileInvalid()) {
-            toRePrompt = true;
-        } else {
-            toRePrompt = false;
-        }
+        } 
+        else { this->instanceData = new Session(loadFile); }
+        if (this->instanceData->getIfFileInvalid()) { toRePrompt = true;} 
+        else { toRePrompt = false;}
     } while (toRePrompt && !this->quitGame);
     this->currentPlayer = this->instanceData->getCurrentPlayer();
     this->scoreThisTurn = 0;
@@ -76,15 +72,24 @@ void GameEngine::gameController() {
             bool gameFinished = checkEndConditions();
             if (gameFinished) {
                 std::cout << "Game over" << std::endl;
+                int highestScore = 0;
+                int winnerIndex = DRAW;
+                // This for loop is a two in one. First if prints the name and score of each player, and at the same time it finds who has the highest score
                 for (int i = 0; i < this->instanceData->getNumOfPlayers(); i++) {
                     std::cout << "Score for " << this->instanceData->getPlayer(i)->getName() << ": " << this->instanceData->getPlayer(i)->getScore() << std::endl;
-                }
-                // If else to check who won or if it was a draw
+                    if (this->instanceData->getPlayer(i)->getScore() > highestScore) { 
+                        highestScore =  this->instanceData->getPlayer(i)->getScore();
+                        winnerIndex = i;
+                    }
+                    else if (this->instanceData->getPlayer(i)->getScore() == highestScore) {
+                        winnerIndex = DRAW;
+                    }
+                 }
+
                 std::cout << BOLD_BRIGHT_GREEN;
-                // if (playerOne->getScore() > playerTwo->getScore()) { std::cout << "Player " << playerOne->getName() << "won!"; }
-                // else if (playerOne->getScore() < playerTwo->getScore()) { std::cout << "Player " << playerTwo->getName() << "won!"; }
-                // else if (playerOne->getScore() == playerTwo->getScore()) { std::cout << "The game was a draw!"; }
-                std::cout << "SETUP WIN CONDITIONS HERE" << std::endl;
+                // Quick if else to check if its a draw or not
+                if (winnerIndex == DRAW) { std::cout << "This game ended in a draw!" << std::endl; }
+                else { std::cout << this->instanceData->getPlayer(winnerIndex)->getName() << " is the winner!" << std::endl; }
                 std::cout << RESET;
                 this->quitGame = true;
             }
@@ -92,6 +97,12 @@ void GameEngine::gameController() {
             this->currentPlayer->addScore(this->scoreThisTurn);
             this->instanceData->swapCurrentPlayer();
             this->currentPlayer = this->instanceData->getCurrentPlayer();
+            // If the tile bag is empty and a player has already passed their turn twice, they shouldn't be allowed to play anymore.
+            // This is only necessary if there are more than 2 players.
+            while (this->instanceData->getTileBagSize() == 0 && this->currentPlayer->getConsecutivePasses() >= 2) {
+                this->instanceData->swapCurrentPlayer();
+                this->currentPlayer = this->instanceData->getCurrentPlayer();
+            }
             this->turnFinished = false;
             this->tilesPlacedThisRound = 0;
             this->scoreThisTurn = 0;
@@ -105,13 +116,19 @@ void GameEngine::gameController() {
 
 bool GameEngine::checkEndConditions() {
     bool conditionsMet = false;
-    // This checks for the end game conditions, first if the tile bag is empty, then if checks if the current user
-    // has passed twice, or their hand has no tiles left, if so the game ends.
+    // This checks for the end game conditions, first if the tile bag is empty, then if checks all users to see how many have passed twice or are out of tiles
+    int playersOut = 0;
     if (this->instanceData->getTileBagSize() == 0) {
-        if (this->currentPlayer->getHand()->size() == 0 || this->currentPlayer->getConsecutivePasses() >= 2) {
-            conditionsMet = true;
+        for (int i = 0; i < this->instanceData->getNumOfPlayers(); i++) {
+            if (this->instanceData->getPlayer(i)->getHand()->size() == 0 || this->instanceData->getPlayer(i)->getConsecutivePasses() >= 2) {
+                playersOut += 1;
+            }
+
         }
     }
+    // If the number of users who are out of the game, are equal to the total number of players minus 1, then that means there is only one player
+    // who is still able to play, therefore the game should end.
+    if (playersOut == (this->instanceData->getNumOfPlayers() - 1)) { conditionsMet = true; }
     return conditionsMet;
 }
 
@@ -124,7 +141,7 @@ void GameEngine::handlePlayerTurn() {
         bool errorCondition = false;
         // Special operation: Bingo conditions
         if (this->tilesPlacedThisRound == MAX_MOVES_PER_TURN) {
-            if (validTilePlacement(&queueCoords)) { 
+            if (validTilePlacement(&queueCoords) || boardEmpty()) { 
                 std::cout << std::endl << "BINGO!!!" << std::endl;
                 this->scoreThisTurn += BINGO_POINTS;
                 this->instanceData->placeTiles(&queueHandIndexes, &queueCoords);
