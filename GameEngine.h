@@ -43,7 +43,7 @@ public:
 
     // Change enableColour to a vector called args if you add toggleable enchancements 
    GameEngine(bool enableColour);
-   GameEngine(std::fstream* loadFile);
+   GameEngine(std::fstream* loadFile, bool enableColour);
    ~GameEngine();
 
     // inputController is what controls the entire flow of the game (not including menu)

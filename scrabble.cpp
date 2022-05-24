@@ -21,7 +21,7 @@ void welcomeMessage();
 void mainMenu(bool enableColour);
 void printMainMenu();
 void newGame(bool enableColour);
-void loadGame();
+void loadGame(bool enableColour);
 void credits();
 std::fstream& GotoLine(std::fstream& file, unsigned int num);
 bool validation(std::fstream myFile);
@@ -63,7 +63,7 @@ void mainMenu(bool enableColour) {
         choice = userInput();
         if (choice == "help") { printHelp(); }
         else if (choice == "1") { newGame(enableColour); } 
-        else if (choice == "2") { loadGame(); } 
+        else if (choice == "2") { loadGame(enableColour); } 
         else if (choice == "3") {
             credits();
             // Reprompt user after showing credits
@@ -93,14 +93,14 @@ void newGame(bool enableColour) {
     return;
 }
 
-void loadGame() {
+void loadGame(bool enableColour) {
     cout << endl << "Enter the filename from which load a game" << endl;
     string dir = userInput();
     fstream myFile;
     myFile.open(dir, std::ios::in);
     if (!myFile) { std::cout << "File not found" << std::endl; }
     else {
-        GameEngine* gameInstance = new GameEngine(&myFile);
+        GameEngine* gameInstance = new GameEngine(&myFile, enableColour);
         gameInstance->gameController();
         delete gameInstance;
     }

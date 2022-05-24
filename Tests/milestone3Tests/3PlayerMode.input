@@ -1,0 +1,14 @@
+1
+3
+ONE
+TWO
+THREE
+place R at C1
+place Done
+place L at C2
+place Done
+place S at C3
+place Done
+pass
+pass
+^D

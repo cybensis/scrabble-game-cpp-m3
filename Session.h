@@ -39,7 +39,7 @@ class Session {
 public:
 
    Session(bool enableColour);
-   Session(std::fstream* loadFile);
+   Session(std::fstream* loadFile, bool enableColour);
    ~Session();
    bool generateTileBag();
    void generatePlayers();

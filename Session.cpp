@@ -16,16 +16,17 @@ Session::Session(bool enableColour) {
     return;
 }
 
-Session::Session(std::fstream* loadFile) {
+Session::Session(std::fstream* loadFile, bool enableColour) {
     this->curPlayerIndex = 0;
     this->numOfPlayers = 0;
+    this->enableColour = enableColour;
     if (*loadFile) {
-        std::string numOfPlayers;
-        std::getline(*loadFile, numOfPlayers);
+        std::string tempString;
+        std::getline(*loadFile, tempString);
         // Could use regex to check for this but I think this looks better and clearer
-        if (numOfPlayers == "2" || numOfPlayers == "3" || numOfPlayers == "4") {
+        if (tempString  == "2" || tempString == "3" || tempString == "4") {
             // Get the players
-            this->numOfPlayers = std::stoi(numOfPlayers);
+            this->numOfPlayers = std::stoi(tempString);
             std::string playerName;
             std::string playerScore; 
             std::string playerHand;
@@ -52,7 +53,6 @@ Session::Session(std::fstream* loadFile) {
         else { this->invalidFile = true; }
         if (!invalidFile) {
             // Skips the two header lines
-            std::string tempString;
             std::getline(*loadFile, tempString);
             std::getline(*loadFile, tempString);
             // Get the board by getting each line, then reading through each char one by one

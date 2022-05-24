@@ -17,9 +17,9 @@ GameEngine::GameEngine(bool enableColour)
     }
 }
 
-GameEngine::GameEngine(std::fstream* loadFile) {
+GameEngine::GameEngine(std::fstream* loadFile, bool enableColour) {
     this->quitGame = false;
-    this->instanceData = new Session(loadFile);
+    this->instanceData = new Session(loadFile, enableColour);
     if (!this->instanceData->getIfFileInvalid()) {
         this->currentPlayer = this->instanceData->getCurrentPlayer();
         this->scoreThisTurn = 0;
