@@ -15,7 +15,6 @@
 #define CAPS_ONLY_REGEX       "^([A-Z])*$"
 #define DIGIT_ONLY_REGEX      "^\\d+$"
 #define ERROR_MESSAGE         "Invalid Input"
-#define ERROR_MESSAGE_COLOUR  BOLD_BRIGHT_RED << "Invalid Input" << RESET
 
 #include "Node.h"
 #include "LinkedList.h"
