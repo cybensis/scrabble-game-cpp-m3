@@ -2,19 +2,20 @@
 #ifndef ASSIGN2_SESSION_H
 #define ASSIGN2_SESSION_H
 
-#define BOARD_SIZE          15
+#define BOARD_SIZE            15
 // When reading in the ScrabbleTiles.txt file, instead of splitting each line on a space, I just 
 // use the index value of the string to access it, the character is the first in each line so index 
 // 0, then a space at index 1 which we ignore, and score follows immediately after at index 2.
-#define CHAR_INDEX           0
-#define SCORE_INDEX          2
-#define TILE_REGEX           "^[A-Z]-(\\d|10)$"
-#define COMMA_SPLIT_REGEX    ","
-#define MAX_TILES_IN_HAND    7
-#define MAX_TILES_IN_BAG     98
-#define CAPS_ONLY_REGEX      "^([A-Z])*$"
-#define DIGIT_ONLY_REGEX     "^\\d+$"
-#define ERROR_MESSAGE        BOLD_BRIGHT_RED << "Invalid Input" << RESET
+#define CHAR_INDEX            0
+#define SCORE_INDEX           2
+#define TILE_REGEX            "^[A-Z]-(\\d|10)$"
+#define COMMA_SPLIT_REGEX     ","
+#define MAX_TILES_IN_HAND     7
+#define MAX_TILES_IN_BAG      98
+#define CAPS_ONLY_REGEX       "^([A-Z])*$"
+#define DIGIT_ONLY_REGEX      "^\\d+$"
+#define ERROR_MESSAGE         "Invalid Input"
+#define ERROR_MESSAGE_COLOUR  BOLD_BRIGHT_RED << "Invalid Input" << RESET
 
 #include "Node.h"
 #include "LinkedList.h"
@@ -37,7 +38,7 @@ typedef std::vector<Player*> PlayerList;
 class Session {
 public:
 
-   Session();
+   Session(bool enableColour);
    Session(std::fstream* loadFile);
    ~Session();
    bool generateTileBag();
@@ -57,6 +58,8 @@ public:
    void printPlayersHand(Player* player);
    bool positionEmpty(std::pair<int, int> position);
 
+   std::string errorMessage; 
+   bool enableColour;
 
 private:
    PlayerList listOfPlayers;

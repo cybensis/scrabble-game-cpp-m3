@@ -18,9 +18,9 @@ using std::endl;
 #define EXIT_SUCCESS    0
 
 void welcomeMessage();
-void mainMenu();
+void mainMenu(bool enableColour);
 void printMainMenu();
-void newGame();
+void newGame(bool enableColour);
 void loadGame();
 void credits();
 std::fstream& GotoLine(std::fstream& file, unsigned int num);
@@ -28,9 +28,23 @@ bool validation(std::fstream myFile);
 string userInput();
 void printHelp();
 
-int main(void) {
-    welcomeMessage();
-    mainMenu();
+int main(int argc, char *argv[]) {
+    // arg[0] is the filename
+    bool argErrors = true;
+    bool enableColour = false;
+    std::string colourToggle = "--colour";
+    if (argc <= 1) { argErrors = false; }
+    // if there are 2 args, then check if the second (argv[1]) is equal to "--colour", as there is only one toggleable enhancement
+    else if (argc == 2 && colourToggle.compare(argv[1]) == 0) { argErrors = false; enableColour = true;}
+
+    if (argErrors) {
+        std::cout << "One of the arguments you supplied are invalid" << std::endl;
+        std::cout << "Available arguments: --colour" << std::endl << std::endl;
+    }
+    else {
+        welcomeMessage();
+        mainMenu(enableColour);
+    }
     return EXIT_SUCCESS;
 }
 
@@ -39,7 +53,7 @@ void welcomeMessage() {
     cout << "-------------------"<< endl;
 }
 
-void mainMenu() {
+void mainMenu(bool enableColour) {
     printMainMenu();
 
     bool toRePrompt;
@@ -48,7 +62,7 @@ void mainMenu() {
         toRePrompt = false;
         choice = userInput();
         if (choice == "help") { printHelp(); }
-        else if (choice == "1") { newGame(); } 
+        else if (choice == "1") { newGame(enableColour); } 
         else if (choice == "2") { loadGame(); } 
         else if (choice == "3") {
             credits();
@@ -70,9 +84,9 @@ void printMainMenu() {
     cout << "4. Quit" << endl << endl;
 }
 
-void newGame() {
+void newGame(bool enableColour) {
     cout << endl << "Starting a New Game" << endl << endl;
-    GameEngine* gameInstance = new GameEngine();
+    GameEngine* gameInstance = new GameEngine(enableColour);
     gameInstance->gameController();
     std::cout << std::endl << "Goodbye" << std::endl;
     delete gameInstance;
@@ -84,10 +98,13 @@ void loadGame() {
     string dir = userInput();
     fstream myFile;
     myFile.open(dir, std::ios::in);
-    GameEngine* gameInstance = new GameEngine(&myFile);
-    gameInstance->gameController();
+    if (!myFile) { std::cout << "File not found" << std::endl; }
+    else {
+        GameEngine* gameInstance = new GameEngine(&myFile);
+        gameInstance->gameController();
+        delete gameInstance;
+    }
     std::cout << std::endl << "Goodbye" << std::endl;
-    delete gameInstance;
     return;
 }
 

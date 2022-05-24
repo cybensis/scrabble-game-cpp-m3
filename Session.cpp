@@ -1,9 +1,13 @@
 
 #include "Session.h"
 
-Session::Session() {
+Session::Session(bool enableColour) {
     this->invalidFile = false;
+    this->enableColour = enableColour;
     this->curPlayerIndex = 0;
+    if (enableColour) { this->errorMessage = std::string(BOLD_BRIGHT_RED) + "Invalid Input" + std::string(RESET);}
+    else { this->errorMessage = "Invalid Input"; }
+
     // Since you can't declare a 2D vectors size in the header file, it needs to be done here. This loops pushes 15 times,
     // another vector that has 15 char slots in it, all initialised with an empty space.
     for (int i = 0; i < BOARD_SIZE; i++) {
@@ -14,6 +18,7 @@ Session::Session() {
 
 Session::Session(std::fstream* loadFile) {
     this->curPlayerIndex = 0;
+    this->numOfPlayers = 0;
     if (*loadFile) {
         std::string numOfPlayers;
         std::getline(*loadFile, numOfPlayers);
@@ -126,7 +131,7 @@ Session::Session(std::fstream* loadFile) {
 
     } 
     else { this->invalidFile = true; }
-    if (this->invalidFile) { std::cout << ERROR_MESSAGE << std::endl; }
+    if (this->invalidFile) { std::cout << this->errorMessage << std::endl; }
     loadFile->close();
     return;
 }
@@ -217,7 +222,7 @@ void Session::generatePlayers() {
     bool invalidInput = true;
     while (invalidInput) {
         std::string userInput;
-        std::cout << "Please enter many people are playing: Range 2-4" << std::endl << "> ";
+        std::cout << "How many people are playing? Range 2-4" << std::endl << "> ";
         std::getline(std::cin, userInput);
         if (userInput == "2" || userInput == "3" || userInput == "4") {
             this->numOfPlayers = std::stoi(userInput);
@@ -229,13 +234,14 @@ void Session::generatePlayers() {
 
 
     int currentUser = 1;
+    invalidInput = false;
     while (currentUser <= this->numOfPlayers) {
-        invalidInput = false;
-        std::string userInput;
         if (!invalidInput) { std::cout << "Enter a name for player " << currentUser << " (uppercase characters only)" << std::endl << "> "; } 
         else { std::cout << "> "; }
+        invalidInput = false;
+        std::string userInput;
         std::getline(std::cin, userInput);
-        if (std::cin.eof() || userInput == "^D") { std::cout << std::endl;  currentUser = this->numOfPlayers; } 
+        if (std::cin.eof() || userInput == "^D") { std::cout << std::endl;  this->numOfPlayers = 0; } 
         // Code yoinked from https://stackoverflow.com/questions/48082092/c-check-if-whole-string-is-uppercase
         // This will check if all characters in a string are uppercase characters AND if they are only valid chars (A-Z)
         else if (std::all_of(userInput.begin(), userInput.end(), [](unsigned char c){ return std::isupper(c); }) && userInput.length() > 0) { 
@@ -246,9 +252,12 @@ void Session::generatePlayers() {
         } 
         else { invalidInput = true; }
 
-        if (invalidInput) { std::cout << ERROR_MESSAGE << std::endl; }
-        else { this->listOfPlayers.push_back(new Player(userInput, this->tileBag)); currentUser += 1; }
-        std::cout << std::endl;
+        if (invalidInput) { std::cout << this->errorMessage << std::endl; }
+        else { 
+            this->listOfPlayers.push_back(new Player(userInput, this->tileBag)); 
+            currentUser += 1; 
+            std::cout << std::endl;
+        }
     }
     return;
 }
@@ -325,16 +334,23 @@ void Session::printPlayersHand(Player* player) {
     LinkedList* playersHand = player->getHand();
     for (int i = 0; i < playersHand->size(); i++ ) {
         Tile* curTile = playersHand->get(i)->tile;
-        // Can't print the "," at the end of the hand printing statement so this if statement checks for the 
-        // moment when i == hand size-1 (-1 because of the array index starting at 0) to change the print statement.
-        if (i != (playersHand->size() - 1)) {
-            std::cout << tilePointColours.at(curTile->value) << curTile->letter << "-" << curTile->value  << RESET << ", ";
+        std::string tile = "";
+        // If colour is enabled, then grab the assign the corresponding score colour, otherwise don't assign colours
+        // since curTile->letter is a char, the tile string can't be concatenated in one line.
+        if (this->enableColour) {
+            tile += tilePointColours.at(curTile->value);
+            tile += curTile->letter;
+            tile += "-" + std::to_string(curTile->value) + RESET;
         }
         else {
-            std::cout << tilePointColours.at(curTile->value) << curTile->letter << "-" << curTile->value  << RESET;
-        }
+            tile += curTile->letter;
+            tile += "-" + std::to_string(curTile->value);    
+        } 
+        // Can't print the "," at the end of the hand printing statement so this if statement checks for the 
+        // moment when i == hand size-1 (-1 because of the array index starting at 0) to change the print statement.
+        if (i != (playersHand->size() - 1)) { std::cout << tile << ", "; }
+        else { std::cout << tile; }
     }
-    std::cout << RESET;
     std::cout << std::endl << std::endl;
     return;
 }

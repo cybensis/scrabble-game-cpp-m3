@@ -41,7 +41,8 @@
 class GameEngine {
 public:
 
-   GameEngine();
+    // Change enableColour to a vector called args if you add toggleable enchancements 
+   GameEngine(bool enableColour);
    GameEngine(std::fstream* loadFile);
    ~GameEngine();
 

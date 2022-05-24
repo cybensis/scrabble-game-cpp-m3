@@ -1,8 +1,8 @@
 #include "GameEngine.h"
 
-GameEngine::GameEngine()
+GameEngine::GameEngine(bool enableColour)
 {
-    this->instanceData = new Session();
+    this->instanceData = new Session(enableColour);
     bool tileBagError = this->instanceData->generateTileBag();
     if (!tileBagError) {
         this->instanceData->generatePlayers();
@@ -19,32 +19,16 @@ GameEngine::GameEngine()
 
 GameEngine::GameEngine(std::fstream* loadFile) {
     this->quitGame = false;
-    bool toRePrompt = false;
-    do {
-        if (toRePrompt) {
-            std::cout << "> ";
-            std::string input;
-            getline(std::cin, input);
-            if (std::cin.eof() || input == "^D") {
-                std::cout << std::endl << std::endl;
-                this->quitGame = true;
-            } else {
-                Session* tmp = this->instanceData;
-                this->instanceData = nullptr;
-                delete tmp;
-                std::fstream myFile;
-                myFile.open(input, std::ios::in);
-                this->instanceData = new Session(&myFile);
-            }
-        } 
-        else { this->instanceData = new Session(loadFile); }
-        if (this->instanceData->getIfFileInvalid()) { toRePrompt = true;} 
-        else { toRePrompt = false;}
-    } while (toRePrompt && !this->quitGame);
-    this->currentPlayer = this->instanceData->getCurrentPlayer();
-    this->scoreThisTurn = 0;
-    this->turnFinished = false;
-    this->tilesPlacedThisRound = 0;
+    this->instanceData = new Session(loadFile);
+    if (!this->instanceData->getIfFileInvalid()) {
+        this->currentPlayer = this->instanceData->getCurrentPlayer();
+        this->scoreThisTurn = 0;
+        this->turnFinished = false;
+        this->tilesPlacedThisRound = 0;
+    }
+    else {
+        std::cout << "Please check the format of your save file" << std::endl;
+    }
 }
 
 
@@ -85,8 +69,7 @@ void GameEngine::gameController() {
                         winnerIndex = DRAW;
                     }
                  }
-
-                std::cout << BOLD_BRIGHT_GREEN;
+                if (this->instanceData->enableColour) { std::cout << BOLD_BRIGHT_GREEN; }
                 // Quick if else to check if its a draw or not
                 if (winnerIndex == DRAW) { std::cout << "This game ended in a draw!" << std::endl; }
                 else { std::cout << this->instanceData->getPlayer(winnerIndex)->getName() << " is the winner!" << std::endl; }
@@ -157,7 +140,7 @@ void GameEngine::handlePlayerTurn() {
                 this->turnFinished = true;
                 this->quitGame = true;
             }
-            else if (!validInput(&userInput, &queueHandIndexes, &queueCoords)) { std::cout << ERROR_MESSAGE << std::endl; }
+            else if (!validInput(&userInput, &queueHandIndexes, &queueCoords)) { std::cout << this->instanceData->errorMessage << std::endl; }
             else if (this->turnFinished && this->tilesPlacedThisRound > 0 && !boardEmpty()) {
                 // validTilePlacement uses queueCoords to confirm that the user is intersecting with an already existing word
                 if (validTilePlacement(&queueCoords)) { this->instanceData->placeTiles(&queueHandIndexes, &queueCoords); }
@@ -170,7 +153,7 @@ void GameEngine::handlePlayerTurn() {
         }
         // This runs if the tiles coordinates are not valid to place
         if (errorCondition) {
-            std::cout << ERROR_MESSAGE << std::endl;
+            std::cout << this->instanceData->errorMessage << std::endl;
             queueCoords.clear();
             queueHandIndexes.clear();
             this->tilesPlacedThisRound = 0;
@@ -369,7 +352,8 @@ void GameEngine::printBoard() {
     for (int i = 0; i < BOARD_SIZE; i++) {
         std::cout << char(i + INT_ASCII_OFFSET) << " |";
         for (int a = 0; a < BOARD_SIZE; a++) {
-            std::cout << " " << BOLD_BRIGHT_CYAN << board->at(i).at(a) << RESET << " |";
+            if (this->instanceData->enableColour) { std::cout << " " << BOLD_BRIGHT_CYAN << board->at(i).at(a) << RESET << " |"; }
+            else { std::cout << " " << board->at(i).at(a) << " |"; }
         }
         std::cout << std::endl;
     }
@@ -455,7 +439,7 @@ void GameEngine::printHelp() {
 }
 
 void GameEngine::printHelp(std::string command) {
-    std::cout << BOLD_BRIGHT_GREEN;
+    if (this->instanceData->enableColour) { std::cout << BOLD_BRIGHT_GREEN; }
     if (command == "place") {
         std::cout << "\"place\" Command" << std::endl;
         std::cout << "      Usage: Used to place tiles on the board" << std::endl;
