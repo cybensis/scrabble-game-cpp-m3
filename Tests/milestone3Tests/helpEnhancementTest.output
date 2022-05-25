@@ -1,0 +1,79 @@
+Welcome to Scrabble!
+-------------------
+
+Menu
+----
+1. New Game
+2. Load Game
+3. Credits (Show student information)
+4. Quit
+
+> 
+Starting a New Game
+
+How many people are playing? Range 2-4
+> Enter a name for player 1 (uppercase characters only)
+> 
+Enter a name for player 2 (uppercase characters only)
+> 
+Let's Play!
+
+ONE, it's your turn
+Score for ONE: 0
+Score for TWO: 0
+    0   1   2   3   4   5   6   7   8   9   10  11  12  13  14 
+  -------------------------------------------------------------
+A |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+B |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+C |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+D |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+E |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+F |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+G |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+H |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+I |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+J |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+K |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+L |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+M |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+N |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+O |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+
+Your hand is
+R-1, D-2, E-1, A-1, C-3, E-1, E-1
+
+> Available commands: place, replace, pass, save, quit
+Type "help commandname" for more info
+
+> "place" Command
+      Usage: Used to place tiles on the board
+      Example: place Y at C10
+"place Done" Command
+      Usage: Used to finish your turn and place all selected tiles down
+      Example: place Done
+"cancel" Command
+      Usage: Used to undo all the "place" commands entered
+      Example: cancel
+[0m
+> "replace" Command
+      Usage: Used to replace a tile in the players hand
+      Example: replace E
+[0m
+> "pass" Command
+      Usage: Used to pass the turn without placing any tiles down
+      Example: pass
+[0m
+> "save" Command
+      Usage: Used to save the state of the current game
+      Example: save filename
+[0m
+> "quit" Command
+      Usage: Used to quit the game
+      Example: quit
+[0m
+> notACommand is not a valid command![0m
+Available commands: place, replace, pass, save, quit
+[0m
+>
+
+Goodbye

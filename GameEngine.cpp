@@ -432,7 +432,7 @@ void GameEngine::createSaveFile(std::string fileName) {
 }
 
 void GameEngine::printHelp() {
-    std::cout << "Available commands: place, replace, pass, save, quit, help" << std::endl;
+    std::cout << "Available commands: place, replace, pass, save, quit" << std::endl;
     std::cout << "Type \"help commandname\" for more info" << std::endl;
     std::cout << std::endl;
     return;
@@ -471,14 +471,10 @@ void GameEngine::printHelp(std::string command) {
         std::cout << "      Usage: Used to quit the game" << std::endl;
         std::cout << "      Example: quit" << std::endl;
     }
-    else if (command == "help") {
-        std::cout << "\"help\" Command" << std::endl;
-        std::cout << "      Usage: Used to show this menu" << std::endl;
-        std::cout << "      Example: help" << std::endl;
-    }
     else {
-        std::cout << BOLD_BRIGHT_RED << command << " is not a valid command!" << RESET << std::endl;
-        std::cout << "Available commands: place, replace, pass, save, quit, help" << std::endl;
+        if (this->instanceData->enableColour) { std::cout << BOLD_BRIGHT_RED; }
+        std::cout << command << " is not a valid command!" << RESET << std::endl;
+        std::cout << "Available commands: place, replace, pass, save, quit" << std::endl;
     }
     std::cout << RESET << std::endl;
     return;
