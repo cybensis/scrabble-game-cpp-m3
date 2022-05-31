@@ -71,7 +71,7 @@ void mainMenu(bool enableColour) {
             printMainMenu();
         } 
         else if (choice == "4") { cout << "\nGoodbye" << endl;} 
-        else { cout << ERROR_MESSAGE << endl; toRePrompt = true; }
+        else { cout << "Invalid Input" << endl; toRePrompt = true; }
     } while (toRePrompt);
 }
 

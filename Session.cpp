@@ -20,6 +20,8 @@ Session::Session(std::fstream* loadFile, bool enableColour) {
     this->curPlayerIndex = 0;
     this->numOfPlayers = 0;
     this->enableColour = enableColour;
+    if (enableColour) { this->errorMessage = std::string(BOLD_BRIGHT_RED) + "Invalid Input" + std::string(RESET);}
+    else { this->errorMessage = "Invalid Input"; }
     if (*loadFile) {
         std::string tempString;
         std::getline(*loadFile, tempString);
@@ -229,7 +231,7 @@ void Session::generatePlayers() {
             invalidInput = false;
         }
         else if (std::cin.eof() || userInput == "^D") { invalidInput = false; this->numOfPlayers = 0; }
-        else { std::cout << ERROR_MESSAGE << std::endl << std::endl; }
+        else { std::cout << this->errorMessage << std::endl << std::endl; }
     }
 
 

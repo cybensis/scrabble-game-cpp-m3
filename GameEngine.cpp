@@ -432,9 +432,10 @@ void GameEngine::createSaveFile(std::string fileName) {
 }
 
 void GameEngine::printHelp() {
+    if (this->instanceData->enableColour) { std::cout << BOLD_BRIGHT_GREEN; }
     std::cout << "Available commands: place, replace, pass, save, quit" << std::endl;
     std::cout << "Type \"help commandname\" for more info" << std::endl;
-    std::cout << std::endl;
+    std::cout << RESET << std::endl;
     return;
 }
 

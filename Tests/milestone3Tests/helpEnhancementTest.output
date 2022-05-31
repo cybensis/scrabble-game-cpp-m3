@@ -44,7 +44,7 @@ R-1, D-2, E-1, A-1, C-3, E-1, E-1
 
 > Available commands: place, replace, pass, save, quit
 Type "help commandname" for more info
-
+[0m
 > "place" Command
       Usage: Used to place tiles on the board
       Example: place Y at C10
