@@ -61,7 +61,7 @@ void mainMenu(bool enableColour) {
     do {
         toRePrompt = false;
         choice = userInput();
-        if (choice == "help") { printHelp(); }
+        if (choice == "help") { printHelp(); toRePrompt = true;}
         else if (choice == "1") { newGame(enableColour); } 
         else if (choice == "2") { loadGame(enableColour); } 
         else if (choice == "3") {
